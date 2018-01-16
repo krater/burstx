@@ -1,3 +1,15 @@
+Burst Explorer
+==============
+
+Burst Explorer is an open source SDR burst reverse engineering tool based on Gqrx.
+
+The current version is incomplete, unffinished, buggy and you can't suppose that
+anything is working or doing the thing that it pretends to do.
+
+The main function at the moment is to store received bursts in different small
+I/Q-Channel wav-files.
+
+
 Gqrx
 ====
 

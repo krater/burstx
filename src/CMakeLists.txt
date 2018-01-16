@@ -53,7 +53,8 @@ endif(WIN32)
 
 #######################################################################################################################
 # Build the program
-add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCE} ${UIS_HDRS} ${RESOURCES_LIST})
+add_executable(${PROJECT_NAME} ${GQRX_SRC_LIST} ${GQRX_UI_SRC_LIST} ${${PROJECT_NAME}_SOURCE} ${UIS_HDRS} ${RESOURCES_LIST})
+#add_executable(burstx ${BURSTX_SRC_LIST} ${BURSTX_UI_SRC_LIST} ${${PROJECT_NAME}_SOURCE} ${UIS_HDRS} ${RESOURCES_LIST})
 qt5_use_modules(${PROJECT_NAME} Core Network Widgets Svg)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
 # The pulse libraries are only needed on Linux. On other platforms they will not be found, so having them here is fine.

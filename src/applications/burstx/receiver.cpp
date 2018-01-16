@@ -34,7 +34,7 @@
 #include <osmosdr/source.h>
 #include <osmosdr/ranges.h>
 
-#include "applications/gqrx/receiver.h"
+#include "applications/burstx/receiver.h"
 #include "dsp/correct_iq_cc.h"
 #include "dsp/filter/fir_decim.h"
 #include "dsp/rx_fft.h"

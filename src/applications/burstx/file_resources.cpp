@@ -21,7 +21,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "applications/gqrx/receiver.h"
+#include "applications/burstx/receiver.h"
 #include <QFileInfo>
 #include <QTemporaryFile>
 #include <QDataStream>

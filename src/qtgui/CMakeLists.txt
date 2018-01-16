@@ -20,6 +20,8 @@ add_source_files(SRCS_LIST
 	demod_options.h
 	dockaudio.cpp
 	dockaudio.h
+    dockburst.cpp
+    dockburst.h
 	dockbookmarks.cpp
 	dockbookmarks.h
 	dockfft.cpp
@@ -54,6 +56,7 @@ add_source_files(UI_SRCS_LIST
 	audio_options.ui
 	demod_options.ui
 	dockaudio.ui
+    dockburst.ui
 	dockbookmarks.ui
 	dockfft.ui
 	dockinputctl.ui

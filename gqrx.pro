@@ -87,12 +87,6 @@ VERSTR = '\\"$${VER}\\"'          # place quotes around the version string
 DEFINES += VERSION=\"$${VERSTR}\" # create a VERSION macro containing the version string
 
 SOURCES += \
-    src/applications/gqrx/main.cpp \
-    src/applications/gqrx/mainwindow.cpp \
-    src/applications/gqrx/receiver.cpp \
-    src/applications/gqrx/file_resources.cpp \
-    src/applications/gqrx/remote_control.cpp \
-    src/applications/gqrx/remote_control_settings.cpp \
     src/dsp/afsk1200/cafsk12.cpp \
     src/dsp/afsk1200/costabf.c \
     src/dsp/agc_impl.cpp \
@@ -136,14 +130,15 @@ SOURCES += \
     src/qtgui/qtcolorpicker.cpp \
     src/receivers/nbrx.cpp \
     src/receivers/receiver_base.cpp \
-    src/receivers/wfmrx.cpp
+    src/receivers/wfmrx.cpp \
+    src/dsp/burstfilesink_c.cpp \
+    src/qtgui/dockburst.cpp \
+    src/applications/burstx/file_resources.cpp \
+    src/applications/burstx/main.cpp \
+    src/applications/burstx/mainwindow.cpp \
+    src/applications/burstx/receiver.cpp
 
 HEADERS += \
-    src/applications/gqrx/gqrx.h \
-    src/applications/gqrx/mainwindow.h \
-    src/applications/gqrx/receiver.h \
-    src/applications/gqrx/remote_control.h \
-    src/applications/gqrx/remote_control_settings.h \
     src/dsp/afsk1200/cafsk12.h \
     src/dsp/afsk1200/filter.h \
     src/dsp/afsk1200/filter-i386.h \
@@ -195,11 +190,14 @@ HEADERS += \
     src/qtgui/qtcolorpicker.h \
     src/receivers/nbrx.h \
     src/receivers/receiver_base.h \
-    src/receivers/wfmrx.h
+    src/receivers/wfmrx.h \
+    src/dsp/burstfilesink_c.h \
+    src/qtgui/dockburst.h \
+    src/applications/burstx/mainwindow.h \
+    src/applications/burstx/receiver.h \
+    src/applications/burstx/burstx.h
 
 FORMS += \
-    src/applications/gqrx/mainwindow.ui \
-    src/applications/gqrx/remote_control_settings.ui \
     src/qtgui/afsk1200win.ui \
     src/qtgui/agc_options.ui \
     src/qtgui/audio_options.ui \
@@ -212,7 +210,10 @@ FORMS += \
     src/qtgui/iq_tool.ui \
     src/qtgui/dockrxopt.ui \
     src/qtgui/ioconfig.ui \
-    src/qtgui/nb_options.ui
+    src/qtgui/nb_options.ui \
+    src/qtgui/dockburst.ui \
+    src/applications/burstx/mainwindow.ui \
+    src/applications/burstx/remote_control_settings.ui
 
 # Use pulseaudio (ps: could use equals? undocumented)
 equals(AUDIO_BACKEND, "pulseaudio"): {

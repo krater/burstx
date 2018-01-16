@@ -20,6 +20,8 @@ add_source_files(SRCS_LIST
 	rds/tmc_events.h
 	agc_impl.cpp
 	agc_impl.h
+    burstfilesink_c.cpp
+    burstfilesink_c.h
 	correct_iq_cc.cpp
 	correct_iq_cc.h
 	lpf.cpp

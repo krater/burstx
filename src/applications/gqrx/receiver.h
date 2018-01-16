@@ -106,7 +106,6 @@ public:
     };
 
     receiver(const std::string input_device="",
-             const std::string audio_device="",
              unsigned int decimation=1);
     ~receiver();
 

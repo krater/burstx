@@ -40,7 +40,7 @@
 #endif
 
 #include "mainwindow.h"
-#include "gqrx.h"
+#include "burstx.h"
 
 #include <iostream>
 #include <boost/program_options.hpp>

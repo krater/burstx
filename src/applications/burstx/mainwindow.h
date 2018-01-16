@@ -43,7 +43,7 @@
 
 // see https://bugreports.qt-project.org/browse/QTBUG-22829
 #ifndef Q_MOC_RUN
-#include "applications/gqrx/receiver.h"
+#include "applications/burstx/receiver.h"
 #endif
 
 namespace Ui {
