@@ -58,11 +58,12 @@ receiver::receiver(const std::string input_device, unsigned int decimation)
       d_filter_offset(0.0),
       d_cw_offset(0.0),
       d_recording_iq(false),
-      d_recording_wav(false),
+      d_recording_burst(false),
       d_sniffer_active(false),
       d_iq_rev(false),
       d_dc_cancel(false),
-      d_iq_balance(false)
+      d_iq_balance(false),
+      d_burst_fft_pos(true)
 {
 
     tb = gr::make_top_block("gqrx");
@@ -83,15 +84,16 @@ receiver::receiver(const std::string input_device, unsigned int decimation)
 
     std::vector<float> taps;
     taps=gr::filter::firdes::low_pass(10/*gain*/, d_input_rate, 1000000/*cutof freq*/, 100000/*transition width*/, gr::filter::firdes::WIN_HAMMING, 6.76);
+    //taps.push_back(1.0);
     filter = gr::filter::freq_xlating_fir_filter_ccf::make(d_decim, taps, d_filter_offset/*d_rf_freq/*centerfreq...freq shift!!!!*/, d_input_rate/*sampling freq*/);
 
     copy_in  = gr::blocks::copy::make(sizeof(gr_complex));
     copy_out = gr::blocks::copy::make(sizeof(gr_complex));
 
     squelch = gr::analog::pwr_squelch_cc::make(1/*db*/, 0.0001/*alpha*/, 0, false);
-    burstsink = burstfilesink_c::make();
+    burstsink = burstfilesink_c::make("Burst_", 100000, false, d_recording_burst);
 
-    burst_fft = make_rx_fft_c(8192u);
+    burst_fft = make_rx_fft_c(8192u, 0);
 
     sniffer = make_sniffer_f();
     /* sniffer_rr is created at each activation. */
@@ -148,9 +150,19 @@ void receiver::connect_all()
     tb->connect(filter, 0, copy_out, 0);
 
     tb->connect(copy_out, 0, squelch, 0);
-    tb->connect(copy_out, 0, burst_fft, 0);
+
     printf("4");
     tb->connect(squelch, 0, burstsink, 0);
+
+    //add burst_fft
+    if(d_burst_fft_pos)
+    {
+        tb->connect(squelch, 0, burst_fft, 0);
+    }
+    else
+    {
+        tb->connect(copy_out, 0, burst_fft, 0);
+    }
 
 /*
     printf("5");
@@ -326,7 +338,7 @@ double receiver::set_input_rate(double rate)
 unsigned int receiver::set_input_decim(unsigned int decim)
 {
     printf("input decimation: %d\n",decim);
-
+/*
     if (decim == d_decim)
         return d_decim;
 
@@ -348,7 +360,7 @@ unsigned int receiver::set_input_decim(unsigned int decim)
 
     if (d_running)
         tb->start();
-
+*/
     return d_decim;
 }
 
@@ -388,6 +400,37 @@ void receiver::set_iq_swap(bool reversed)
 bool receiver::get_iq_swap(void) const
 {
     return d_iq_rev;
+}
+
+
+/**
+ * @brief Set position of BurstFFT in DSP chain.
+ * @param burst_fft_pos true = after squelch, false = before squelch *
+ */
+void receiver::set_burstfft_position(bool burst_fft_pos)
+{
+    if(d_burst_fft_pos != burst_fft_pos)
+    {
+        if(!d_burst_fft_pos)
+        {
+            tb->disconnect(copy_out, 0, burst_fft, 0);
+        }
+        else
+        {
+            tb->connect(squelch, 0, burst_fft, 0);
+        }
+
+        d_burst_fft_pos = burst_fft_pos;
+
+        if(d_burst_fft_pos)
+        {
+            tb->connect(squelch, 0, burst_fft, 0);
+        }
+        else
+        {
+            tb->connect(copy_out, 0, burst_fft, 0);
+        }
+    }
 }
 
 /**
@@ -469,11 +512,8 @@ bool receiver::get_iq_balance(void) const
 receiver::status receiver::set_rf_freq(double freq_hz)
 {
     d_rf_freq = freq_hz;
-
     src->set_center_freq(d_rf_freq);
     // FIXME: read back frequency?
-
-    filter->set_center_freq(d_rf_freq);
 
     return STATUS_OK;
 }
@@ -620,14 +660,14 @@ double receiver::get_cw_offset(void) const
     return d_cw_offset;
 }
 
-receiver::status receiver::set_filter(double low, double high, filter_shape shape)
+receiver::status receiver::set_filter(double low, double high)
 {
-    printf("set filter %f %f %u\n",low, high, shape);
+    printf("set filter %f %f\n",low, high);
 
     std::vector<float> taps;
     try
     {
-        taps=gr::filter::firdes::low_pass(1/*gain*/, d_input_rate, (2*high)/*cutof freq*/, 100000/*transition width*/, gr::filter::firdes::WIN_HAMMING, 6.76);
+        taps=gr::filter::firdes::low_pass(10/*gain*/, d_input_rate, (2*high)/*cutof freq*/, 100000/*transition width*/, gr::filter::firdes::WIN_HAMMING, 6.76);
         //taps.push_back(1.0);
         printf("generated low_pass\n");
     }
@@ -676,7 +716,7 @@ void receiver::get_iq_fft_data(std::complex<float>* fftPoints, unsigned int &fft
     iq_fft->get_fft_data(fftPoints, fftsize);
 }
 
-/** Get latest audio FFT data. */
+/** Get latest burst FFT data. */
 void receiver::get_burst_fft_data(std::complex<float>* fftPoints, unsigned int &fftsize)
 {
     burst_fft->get_fft_data(fftPoints, fftsize);
@@ -688,7 +728,7 @@ void receiver::get_burst_fft_data(std::complex<float>* fftPoints, unsigned int &
  */
 receiver::status receiver::set_sql_level(double level_db)
 {
-    printf("set sql level\n");
+    printf("set sql level: %f\n",level_db);
     squelch->set_threshold(level_db);
     return STATUS_OK; // FIXME
 }
@@ -697,7 +737,7 @@ receiver::status receiver::set_sql_level(double level_db)
 receiver::status receiver::set_sql_alpha(double alpha)
 {
     printf("set sql alpha\n");
-    squelch->set_alpha(alpha);
+    //squelch->set_alpha(alpha);
     return STATUS_OK; // FIXME
 }
 
@@ -766,4 +806,28 @@ receiver::status receiver::stop_sniffer()
 void receiver::get_sniffer_data(float * outbuff, unsigned int &num)
 {
     sniffer->get_samples(outbuff, num);
+}
+
+receiver::status receiver::start_burst_recording(const std::string filename)
+{
+    if(!d_recording_burst)
+    {
+        burstsink->set_active(true);
+        d_recording_burst = true;
+        return STATUS_OK;
+    }
+
+    return STATUS_ERROR;
+}
+
+receiver::status receiver::stop_burst_recording()
+{
+    if(d_recording_burst)
+    {
+        burstsink->set_active(false);
+        d_recording_burst = false;
+        return STATUS_OK;
+    }
+
+    return STATUS_ERROR;
 }

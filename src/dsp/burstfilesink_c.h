@@ -18,6 +18,8 @@ public:
         gr_vector_const_void_star &input_items,
         gr_vector_void_star &output_items);
 
+    void set_active(bool active);
+
 
 private:
     const char *m_filename;

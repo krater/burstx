@@ -135,12 +135,13 @@ void DockBurst::startBurstRecorder(void)
     ui->burstRecButton->click();
 }
 
-/*! Public slot to stop audio recording by external events (e.g. satellite LOS).
+/*! Public slot to stop burst recording by external events (e.g. satellite LOS).
  *
  * The event is ignored if no audio recording is in progress.
  */
 void DockBurst::stopBurstRecorder(void)
 {
+
     if (ui->burstRecButton->isChecked())
         ui->burstRecButton->click(); // emulate a button click
     else
@@ -202,7 +203,8 @@ void DockBurst::on_audioConfButton_clicked()
 /*! \brief Set status of burst record button. */
 void DockBurst::setBurstRecButtonState(bool checked)
 {
-    if (checked == ui->burstRecButton->isChecked()) {
+    if (checked == ui->burstRecButton->isChecked())
+    {
         /* nothing to do */
         return;
     }
@@ -214,6 +216,14 @@ void DockBurst::setBurstRecButtonState(bool checked)
     ui->burstRecButton->setToolTip(isChecked ? tr("Stop burst recorder") : tr("Start burst recorder"));
     //ui->burstRecConfButton->setEnabled(!isChecked);
 }
+
+
+void DockBurst::on_squelchThreshold_valueChanged(double threshold)
+{
+    printf("blaaaaaaaaa\n");
+    emit squelchThresholdChanged(threshold);
+}
+
 
 void DockBurst::saveSettings(QSettings *settings)
 {

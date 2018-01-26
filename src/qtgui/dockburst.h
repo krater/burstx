@@ -87,6 +87,8 @@ signals:
     /*! \brief FFT rate changed. */
     void fftRateChanged(int fps);
 
+    void squelchThresholdChanged(double threshold);
+
 private slots:
     void on_audioStreamButton_clicked(bool checked);
     void on_burstRecButton_clicked(bool checked);
@@ -97,6 +99,8 @@ private slots:
     void setNewUdpHost(const QString &host);
     void setNewUdpPort(int port);
 
+
+    void on_squelchThreshold_valueChanged(double arg1);
 
 private:
     Ui::DockBurst  *ui;

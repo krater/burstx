@@ -84,10 +84,8 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     ui->freqCtrl->setup(0, 0, 9999e6, 1, FCTL_UNIT_NONE);
     ui->freqCtrl->setFrequency(144500000);
 
-    d_filter_shape = receiver::FILTER_SHAPE_NORMAL;
-
     /* create receiver object */
-    rx = new receiver("", 1);
+    rx = new receiver("", 2);
     rx->set_rf_freq(144500000.0f);
 
     /* meter timer */
@@ -194,15 +192,18 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     connect(uiDockRxOpt, SIGNAL(agcGainChanged(int)), this, SLOT(setAgcGain(int)));
     connect(uiDockRxOpt, SIGNAL(agcDecayChanged(int)), this, SLOT(setAgcDecay(int)));
     connect(uiDockRxOpt, SIGNAL(noiseBlankerChanged(int,bool,float)), this, SLOT(setNoiseBlanker(int,bool,float)));
-    connect(uiDockRxOpt, SIGNAL(sqlLevelChanged(double)), this, SLOT(setSqlLevel(double)));
     connect(uiDockRxOpt, SIGNAL(sqlAutoClicked()), this, SLOT(setSqlLevelAuto()));
 //    connect(uiDockBurst, SIGNAL(audioStreamingStarted(QString,int)), this, SLOT(startAudioStream(QString,int)));
 //    connect(uiDockBurst, SIGNAL(audioStreamingStopped()), this, SLOT(stopAudioStreaming()));
-    connect(uiDockBurst, SIGNAL(audioRecStarted(QString)), this, SLOT(startAudioRec(QString)));
-    connect(uiDockBurst, SIGNAL(audioRecStopped()), this, SLOT(stopAudioRec()));
+    connect(uiDockBurst, SIGNAL(burstRecStarted(QString)), this, SLOT(startBurstRec(QString)));
+    connect(uiDockBurst, SIGNAL(burstRecStopped()), this, SLOT(stopBurstRec()));
     connect(uiDockBurst, SIGNAL(audioPlayStarted(QString)), this, SLOT(startAudioPlayback(QString)));
     connect(uiDockBurst, SIGNAL(audioPlayStopped()), this, SLOT(stopAudioPlayback()));
     connect(uiDockBurst, SIGNAL(fftRateChanged(int)), this, SLOT(setBurstFftRate(int)));
+
+    connect(uiDockBurst, SIGNAL(squelchThresholdChanged(double)), this, SLOT(setSquelchThreshold(double)));
+
+
     connect(uiDockFft, SIGNAL(fftSizeChanged(int)), this, SLOT(setIqFftSize(int)));
     connect(uiDockFft, SIGNAL(fftRateChanged(int)), this, SLOT(setIqFftRate(int)));
     connect(uiDockFft, SIGNAL(wfSpanChanged(quint64)), this, SLOT(setWfTimeSpan(quint64)));
@@ -782,13 +783,11 @@ void MainWindow::setAntenna(const QString antenna)
  */
 void MainWindow::setFilterOffset(qint64 freq_hz)
 {
-    printf("a:%lld\n",freq_hz);
     rx->set_filter_offset((double) freq_hz);
     ui->plotter->setFilterOffset(freq_hz);
 
     updateFrequencyRange();
 
-//    qint64 rx_freq = d_hw_freq + d_lnb_lo + freq_hz;
     ui->freqCtrl->setFrequency(d_hw_freq/*rx_freq*/);
 }
 
@@ -903,6 +902,7 @@ void MainWindow::selectDemod(QString strModulation)
  */
 void MainWindow::selectDemod(int mode_idx)
 {
+    (void)(mode_idx);
 #if 0
     double  cwofs = 0.0;
     int     filter_preset = uiDockRxOpt->currentFilter();
@@ -1023,25 +1023,8 @@ void MainWindow::setFmEmph(double tau)
 }
 
 
-/**
- * @brief AM DCR status changed (slot).
- * @param enabled Whether DCR is enabled or not.
- */
-void MainWindow::setAmDcr(bool enabled)
-{
-    //rx->set_am_dcr(enabled);
-}
 
-void MainWindow::setCwOffset(int offset)
-{
-    //rx->set_cw_offset(offset);
-}
 
-/** Set AGC ON/OFF. */
-void MainWindow::setAgcOn(bool agc_on)
-{
-    //rx->set_agc_on(agc_on);
-}
 
 /** AGC hang ON/OFF. */
 void MainWindow::setAgcHang(bool use_hang)
@@ -1211,52 +1194,38 @@ void MainWindow::burstFftTimeout()
 
 
 /**
- * @brief Start audio recorder.
+ * @brief Start burst recording.
  * @param filename The file name into which audio should be recorded.
  */
-void MainWindow::startAudioRec(const QString filename)
+void MainWindow::startBurstRec(const QString filename)
 {
-#if 0
-    if (!d_have_audio)
+    if (rx->start_burst_recording(filename.toStdString()))
     {
-        QMessageBox msg_box;
-        msg_box.setIcon(QMessageBox::Critical);
-        msg_box.setText(tr("Recording audio requires a demodulator.\n"
-                           "Currently, demodulation is switched off "
-                           "(Mode->Demod off)."));
-        msg_box.exec();
-        uiDockBurst->setAudioRecButtonState(false);
-    }
-    else if (rx->start_audio_recording(filename.toStdString()))
-    {
-        ui->statusBar->showMessage(tr("Error starting audio recorder"));
+        ui->statusBar->showMessage(tr("Error starting burst recording"));
 
         /* reset state of record button */
-        uiDockBurst->setAudioRecButtonState(false);
+        uiDockBurst->setBurstRecButtonState(false);
     }
     else
     {
-        ui->statusBar->showMessage(tr("Recording audio to %1").arg(filename));
+        ui->statusBar->showMessage(tr("Recording burst to %1").arg(filename));
     }
-#endif
 }
 
-/** Stop audio recorder. */
-void MainWindow::stopAudioRec()
+/** Stop burst recording. */
+void MainWindow::stopBurstRec()
 {
-#if 0
-    if (rx->stop_audio_recording())
+    if (rx->stop_burst_recording())
     {
         /* okay, this one would be weird if it really happened */
-        ui->statusBar->showMessage(tr("Error stopping audio recorder"));
+        ui->statusBar->showMessage(tr("Error stopping burst recording"));
 
-        uiDockBurst->setAudioRecButtonState(true);
+        uiDockBurst->setBurstRecButtonState(true);
     }
     else
     {
-        ui->statusBar->showMessage(tr("Audio recorder stopped"), 5000);
+        ui->statusBar->showMessage(tr("Burst recording stopped"), 5000);
     }
-#endif
 }
 
 void MainWindow::startIqPlayback(const QString filename, float samprate)
@@ -1374,6 +1343,10 @@ void MainWindow::setIqFftRate(int fps)
 
     if (interval > 9 && iq_fft_timer->isActive())
         iq_fft_timer->setInterval(interval);
+
+
+    qDebug() << "IQ FFT" << interval;
+
 }
 
 /** Waterfall time span has changed. */
@@ -1411,6 +1384,8 @@ void MainWindow::setBurstFftRate(int fps)
 
     if (burst_fft_timer->isActive())
         burst_fft_timer->setInterval(interval);
+
+    qDebug() << "BURST FFT" << interval;
 }
 
 /** Set FFT plot color. */
@@ -1434,6 +1409,12 @@ void MainWindow::setFftPeakHold(bool enable)
 void MainWindow::setPeakDetection(bool enabled)
 {
     ui->plotter->setPeakDetection(enabled ,2);
+}
+
+void MainWindow::setSquelchThreshold(double threshold)
+{
+    printf("Squelch Threshold %f\n",threshold);
+    rx->set_sql_level(threshold);
 }
 
 /**
@@ -1664,7 +1645,7 @@ void MainWindow::on_plotter_newFilterFreq(int low, int high)
     uiDockBurst->setFftRange(low, high);
 
     /* parameter correctness will be checked in receiver class */
-    retcode = rx->set_filter((double) low, (double) high, d_filter_shape);
+    retcode = rx->set_filter((double) low, (double) high);
 
     /* Update filter range of plotter, in case this slot is triggered by
      * switching to a bookmark */

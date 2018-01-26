@@ -69,19 +69,6 @@ public:
         STATUS_ERROR = 1  /*!< There was an error. */
     };
 
-    /** Supported receiver types. */
-    enum rx_chain {
-        RX_CHAIN_NONE  = 0,   /*!< No receiver, just spectrum analyzer. */
-        RX_CHAIN_NBRX  = 1,   /*!< Narrow band receiver (AM, FM, SSB). */
-        RX_CHAIN_WFMRX = 2    /*!< Wide band FM receiver (for broadcast). */
-    };
-
-    /** Filter shape (convenience wrappers for "transition width"). */
-    enum filter_shape {
-        FILTER_SHAPE_SOFT = 0,   /*!< Soft: Transition band is TBD of width. */
-        FILTER_SHAPE_NORMAL = 1, /*!< Normal: Transition band is TBD of width. */
-        FILTER_SHAPE_SHARP = 2   /*!< Sharp: Transition band is TBD of width. */
-    };
 
     receiver(const std::string input_device="", unsigned int decimation=1);
     ~receiver();
@@ -130,7 +117,7 @@ public:
     double      get_filter_offset(void) const;
     status      set_cw_offset(double offset_hz);
     double      get_cw_offset(void) const;
-    status      set_filter(double low, double high, filter_shape shape);
+    status      set_filter(double low, double high);
     status      set_freq_corr(double ppm);
     float       get_signal_pwr(bool dbfs) const;
     void        set_iq_fft_size(int newsize);
@@ -142,11 +129,12 @@ public:
     /* Squelch parameter */
     status      set_sql_level(double level_db);
     status      set_sql_alpha(double alpha);
+    void        set_burstfft_position(bool burst_fft_pos);
 
 
     /* Audio parameters */
-    status      start_audio_recording(const std::string filename);
-    status      stop_audio_recording();
+    status      start_burst_recording(const std::string filename);
+    status      stop_burst_recording();
     status      start_audio_playback(const std::string filename);
     status      stop_audio_playback();
 
@@ -158,7 +146,7 @@ public:
     status      stop_sniffer();
     void        get_sniffer_data(float * outbuff, unsigned int &num);
 
-    bool        is_recording_audio(void) const { return d_recording_wav; }
+    bool        is_recording_burst(void) const { return d_recording_burst; }
     bool        is_snifffer_active(void) const { return d_sniffer_active; }
 
 private:
@@ -173,11 +161,13 @@ private:
     double      d_filter_offset;    /*!< Current filter offset */
     double      d_cw_offset;        /*!< CW offset */
     bool        d_recording_iq;     /*!< Whether we are recording I/Q file. */
-    bool        d_recording_wav;    /*!< Whether we are recording WAV file. */
+    bool        d_recording_burst;  /*!< Whether we are recording bursts. */
     bool        d_sniffer_active;   /*!< Only one data decoder allowed. */
     bool        d_iq_rev;           /*!< Whether I/Q is reversed or not. */
     bool        d_dc_cancel;        /*!< Enable automatic DC removal. */
     bool        d_iq_balance;       /*!< Enable automatic IQ balance. */
+    bool        d_burst_fft_pos;    /*!< BurstFFT position, true = after squelch */
+
 
     std::string input_devstr;  /*!< Current input device string. */
     std::string output_devstr; /*!< Current output device string. */

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>220</width>
-    <height>200</height>
+    <height>274</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -125,10 +125,10 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>Record audio</string>
+         <string>Record bursts</string>
         </property>
         <property name="statusTip">
-         <string>Record audio</string>
+         <string>Record bursts</string>
         </property>
         <property name="text">
          <string>Rec</string>
@@ -181,6 +181,46 @@
           <width>16</width>
           <height>16</height>
          </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="squelchLabel">
+        <property name="text">
+         <string>Squelch</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="squelchThreshold">
+        <property name="suffix">
+         <string> db</string>
+        </property>
+        <property name="decimals">
+         <number>1</number>
+        </property>
+        <property name="minimum">
+         <double>-150.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>-80.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="displaySquelch">
+        <property name="text">
+         <string>display</string>
         </property>
        </widget>
       </item>

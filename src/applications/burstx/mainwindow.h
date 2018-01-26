@@ -79,7 +79,6 @@ private:
     qint64 d_hw_freq_start;
     qint64 d_hw_freq_stop;
 
-    enum receiver::filter_shape d_filter_shape;
     std::complex<float>* d_fftData;
     float          *d_realFftData;
     float          *d_iirFftData;
@@ -133,9 +132,6 @@ private slots:
     void selectDemod(int index);
     void setFmMaxdev(float max_dev);
     void setFmEmph(double tau);
-    void setAmDcr(bool enabled);
-    void setCwOffset(int offset);
-    void setAgcOn(bool agc_on);
     void setAgcHang(bool use_hang);
     void setAgcThreshold(int threshold);
     void setAgcSlope(int factor);
@@ -146,9 +142,10 @@ private slots:
     double setSqlLevelAuto();
     void setPassband(int bandwidth);
 
-    /* burst recording */
-    void startAudioRec(const QString filename);
-    void stopAudioRec();
+    /* dock burst */
+    void startBurstRec(const QString filename);
+    void stopBurstRec();
+    void setSquelchThreshold(double threshold);
 
 /*    void startAudioStream(const QString udp_host, int udp_port);
     void stopAudioStreaming();

@@ -62,41 +62,55 @@ int burstfilesink_c::work(
             gr_vector_void_star &output_items
 )
 {
-    const gr_complex *in = (const gr_complex *) input_items[0];
-    int offset=0;
-    for(int i=0;i<noutput_items;i++)
+    (void)(output_items);
+
+    if(m_active)
     {
-        if(((in[i].real()==0.0) && (in[i].imag()==0.0)) || !m_active) //yes, I'm serios
+        const gr_complex *in = (const gr_complex *) input_items[0];
+
+        int offset=0;
+        for(int i=0;i<noutput_items;i++)
         {
-            ecnt++;
-            if(m_open&&(ecnt > m_data_threshold))
+            if((in[i].real()==0.0) && (in[i].imag()==0.0)) //yes, I'm serios, I compare floats vs 0.0
             {
-                fwrite(in+offset, i-offset-m_data_threshold, sizeof(gr_complex), m_file);
-                fclose(m_file);
-                m_open=false;
-                offset=i;
+                ecnt++;
+                if(m_open&&(ecnt > m_data_threshold))
+                {
+                    fwrite(in+offset, i-offset-m_data_threshold, sizeof(gr_complex), m_file);
+                    fclose(m_file);
+                    m_open=false;
+                    offset=i;
+                }
+            }
+            else
+            {
+                ecnt=0;
+                if(!m_open)
+                {
+                    char fn[1024];
+                    snprintf(fn, sizeof(fn), "%s%u.wav", m_filename, cnt);
+                    cnt++;
+
+                    printf("New File:%s\n", fn);
+                    m_file = fopen(fn, "wb");
+                    m_open=true;
+                    WriteWavHeader();
+                }
             }
         }
-        else
-        {
-            ecnt=0;
-            if(!m_open)
-            {
-                char fn[1024];
-                snprintf(fn, sizeof(fn), "%s%u.wav", m_filename, cnt);
-                cnt++;
 
-                printf("New File:%s\n", fn);
-                m_file = fopen(fn, "wb");
-                m_open=true;
-                WriteWavHeader();
-            }
+        if(m_open)
+        {
+            fwrite(in+offset, noutput_items-offset, sizeof(gr_complex), m_file);
         }
     }
-
-    if(m_open)
+    else
     {
-        fwrite(in+offset, noutput_items-offset, sizeof(gr_complex), m_file);
+        if(m_open)
+        {
+            fclose(m_file);
+            m_open=false;
+        }
     }
 
 
@@ -129,3 +143,8 @@ void burstfilesink_c::WriteWavHeader()
     fwrite(Data_Chunk, 1, sizeof(Data_Chunk), m_file);
 }
 
+
+void burstfilesink_c::set_active(bool active)
+{
+    m_active = active;
+}
